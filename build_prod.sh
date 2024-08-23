@@ -19,14 +19,6 @@ npm run build:prod
 # Build the backend
 cd ..
 
-# Build for Mac M1, M2, etc
-echo "Building for Mac M1, M2, etc"
-CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -o output/$APP_NAME.mac.arm64
-
-# Build for Mac Intel
-echo "Building for Mac Intel"
-CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o output/$APP_NAME.mac.amd64
-
 # Build for Linux
 echo "Building for Linux"
 CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o output/$APP_NAME.linux.amd64
