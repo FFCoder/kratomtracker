@@ -13,6 +13,9 @@ rm -rf output/*
 
 # Build the frontend
 cd frontend
+
+# Remove package-lock.json
+rm -f package-lock.json
 npm install
 npm run build:prod
 
