@@ -16,20 +16,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: List directory contents
-      run: ls -la
-
-    - name: Check if build.sh exists
-      run: |
-        if [ -f "build.sh" ]; then
-          echo "build.sh exists"
-        else
-          echo "build.sh does not exist"
-          exit 1
-        fi
-
-    - name: Check build.sh permissions
-      run: ls -l build.sh
 
     - name: Build the binary
-      run: ./build-prod.sh
+      run: ./build_prod.sh
