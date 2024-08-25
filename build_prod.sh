@@ -21,4 +21,5 @@ cd ..
 
 # Build for Linux
 echo "Building Binary"
-CGO_ENABLED=1 go build -o output/$APP_NAME.linux.amd64
+go mod tidy
+CGO_ENABLED=1 go build -o output/$APP_NAME
