@@ -16,7 +16,7 @@ cd frontend
 
 # Remove package-lock.json
 rm -f package-lock.json
-npm install
+npm install --legacy-peer-deps
 npm run build:prod
 
 # Build the backend
