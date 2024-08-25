@@ -20,5 +20,5 @@ npm run build:prod
 cd ..
 
 # Build for Linux
-echo "Building for Linux"
-CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o output/$APP_NAME.linux.amd64
+echo "Building Binary"
+CGO_ENABLED=1 go build -o output/$APP_NAME.linux.amd64

@@ -1,16 +1,20 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"embed"
+	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io/fs"
 	"kratomTracker/doses"
 	"kratomTracker/notificationmanager"
 	"kratomTracker/notificationmanager/services"
+	"kratomTracker/remindersManager"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 import (
@@ -41,6 +45,11 @@ func fsHandler() http.Handler {
 func main() {
 	RESEND_API_KEY, resendAPIKeyExists := os.LookupEnv("RESEND_API_KEY")
 	RESEND_FROM_EMAIL, resendFromExists := os.LookupEnv("RESEND_FROM_EMAIL")
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Get Flags
+	portFlag := flag.Int("port", 8080, "Port to run the server on")
+	flag.Parse()
 
 	// Setup Database
 	db, err := sql.Open("sqlite3", "kratom_tracker_app.db?_time_format=sqlite")
@@ -78,6 +87,16 @@ func main() {
 	handleRepoErr(err)
 	defer doseRepo.Close()
 
+	// Setup Reminder Manager
+	reminderManager := remindersManager.NewReminderManager()
+	go reminderManager.Start(ctx)
+	nextDoseTime, err := doseRepo.GetNextDoseTime()
+	if err != nil {
+		fmt.Println("Error getting next dose time: ", err)
+	} else {
+		reminderManager.SetReminder("Take Kratom", nextDoseTime)
+	}
+
 	// Setup API Server
 	//gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
@@ -89,19 +108,24 @@ func main() {
 	router.Use(func(context *gin.Context) {
 		context.Header("Access-Control-Allow-Origin", "*")
 		context.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		context.Header("Access-Control-Allow-Headers", "Content-Type")
 	})
 
 	g := router.Group("/api")
 
 	g.GET("/doses", doses.GetAllDoses(doseRepo))
 	g.GET("/doses/today", doses.GetAllDosesToday(doseRepo))
+	g.GET("/doses/next", doses.GetNextDoseTime(doseRepo))
 	g.POST("/doses", doses.AddDose(doseRepo))
 	g.POST("/doses/now", doses.AddDoseNow(doseRepo))
 
-	fmt.Println("Starting server on port 8080")
-	apiErr := router.Run(":8080")
+	portNumber := *portFlag
+	portNumberStr := strconv.Itoa(portNumber)
+	fmt.Println("Starting server on port " + portNumberStr)
+	apiErr := router.Run(":" + portNumberStr)
 	if apiErr != nil {
 		panic(apiErr)
 	}
+	cancel()
 
 }

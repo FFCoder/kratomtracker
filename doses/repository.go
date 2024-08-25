@@ -10,6 +10,7 @@ import (
 type DoseRepository interface {
 	FindAll() ([]Dose, error)
 	FindAllToday() ([]Dose, error)
+	GetNextDoseTime() (time.Time, error)
 	FindById(id int) (Dose, error)
 	Add(dose Dose) (Dose, error)
 	Update(dose Dose) (Dose, error)
@@ -51,7 +52,12 @@ func (repo *SqliteDoseRepository) FindAll() ([]Dose, error) {
 	doses := []Dose{}
 	for rows.Next() {
 		var dose Dose
-		err := rows.Scan(&dose.Id, &dose.DateTaken)
+		dateStr := ""
+		err := rows.Scan(&dose.Id, &dateStr)
+		if err != nil {
+			return nil, err
+		}
+		dose.DateTaken, err = parseDate(dateStr)
 		if err != nil {
 			return nil, err
 		}
@@ -128,4 +134,19 @@ func (repo *SqliteDoseRepository) Update(dose Dose) (Dose, error) {
 func (repo *SqliteDoseRepository) Delete(id int) error {
 	_, err := repo.Db.Exec("DELETE FROM doses WHERE id = ?", id)
 	return err
+}
+
+func (repo *SqliteDoseRepository) GetNextDoseTime() (time.Time, error) {
+	// Get the time 2 hours after the last dose
+	var lastDoseTime time.Time
+	var lastDoseTimeStr string
+	err := repo.Db.QueryRow("SELECT date_taken FROM doses ORDER BY date_taken DESC LIMIT 1").Scan(&lastDoseTimeStr)
+	if err != nil {
+		return time.Now(), err
+	}
+	lastDoseTime, err = parseDate(lastDoseTimeStr)
+	if err != nil {
+		return time.Now(), err
+	}
+	return lastDoseTime.Add(2 * time.Hour), nil
 }

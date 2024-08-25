@@ -31,12 +31,23 @@ func GetAllDosesToday(repo DoseRepository) func(c *gin.Context) {
 
 func AddDose(repo DoseRepository) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		var dose Dose
-		if err := c.BindJSON(&dose); err != nil {
+		var addDoseRequest AddDoseRequest
+
+		if err := c.BindJSON(&addDoseRequest); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		dose, err := repo.Add(dose)
+		if addDoseRequest.DateTaken == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Date taken is required"})
+			return
+		}
+		// Parse the value given by user
+		parsedTime, err := parseDate(addDoseRequest.DateTaken)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
+			return
+		}
+		dose, err := repo.Add(Dose{DateTaken: parsedTime})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -54,6 +65,21 @@ func AddDoseNow(repo DoseRepository) func(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, dose)
+	}
+}
+
+func GetNextDoseTime(repo DoseRepository) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		nextDoseTime, err := repo.GetNextDoseTime()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, struct {
+			NextDoseTime time.Time `json:"nextDoseTime"`
+		}{
+			NextDoseTime: nextDoseTime,
+		})
 	}
 }
 
