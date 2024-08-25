@@ -6,11 +6,8 @@ name: Build Binaries
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
@@ -27,3 +24,8 @@ jobs:
 
     - name: Build the binary
       run: ./build_prod.sh
+    - uses: actions/upload-artifact@v3
+      name: "Upload binary"
+      with:
+        name: kratom_tracker
+        path: output/kratom_tracker
