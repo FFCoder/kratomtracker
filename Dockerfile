@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.22-bullseye as build
+FROM golang:1.22-bullseye AS build
 
 LABEL authors="Jonathon Chambers"
 LABEL description="This is the Dockerfile for setting up the Kratom Tracker Application"
