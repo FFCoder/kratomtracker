@@ -5,6 +5,13 @@ export APP_NAME="kratom_tracker"
 export VITE_API_URL="/api"
 export CGO_ENABLED=1 # Required for sqlite3
 
+# Validate pnpm is installed
+if ! command -v pnpm &> /dev/null
+then
+    echo "pnpm could not be found"
+    exit 1
+fi
+
 # Make the output
 mkdir -p output
 
@@ -14,9 +21,7 @@ rm -rf output/*
 # Build the frontend
 cd frontend || exit 1
 
-# Remove package-lock.json
-rm -f package-lock.json
-#npm install --legacy-peer-deps
+pnpm install
 npm run build:prod
 
 # Build the backend
