@@ -9,7 +9,13 @@ export CGO_ENABLED=1 # Required for sqlite3
 if ! command -v pnpm &> /dev/null
 then
     echo "pnpm could not be found"
-    exit 1
+    echo "attempting to install pnpm"
+    npm install -g pnpm
+    if ! command -v pnpm &> /dev/null
+    then
+        echo "pnpm failed to install"
+        exit 1
+    fi
 fi
 
 # Make the output
