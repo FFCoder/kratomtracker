@@ -1,0 +1,10 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+        - kratom_tracker:/app
+
+volumes:
+  kratom_tracker:

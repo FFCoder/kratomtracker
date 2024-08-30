@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
 import (
@@ -33,6 +34,11 @@ func handleRepoErr(err error) {
 	}
 }
 
+// printLocalTime prints the local time to the console.
+func printLocalTime() {
+	fmt.Println("Local Time: ", time.Now().Local().Format("2006-01-02 15:04:05"))
+}
+
 func fsHandler() http.Handler {
 	sub, err := fs.Sub(publicAssets, "frontend/dist")
 	if err != nil {
@@ -46,6 +52,9 @@ func main() {
 	RESEND_API_KEY, resendAPIKeyExists := os.LookupEnv("RESEND_API_KEY")
 	RESEND_FROM_EMAIL, resendFromExists := os.LookupEnv("RESEND_FROM_EMAIL")
 	ctx, cancel := context.WithCancel(context.Background())
+
+	// Print the local time to the console.
+	printLocalTime()
 
 	// Get Flags
 	portFlag := flag.Int("port", 8080, "Port to run the server on")
@@ -98,7 +107,12 @@ func main() {
 	}
 
 	// Setup API Server
-	//gin.SetMode(gin.ReleaseMode)
+	devMode := os.Getenv("DEV_MODE") == "true"
+	if devMode {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	router := gin.Default()
 	router.GET("/assets/*filepath", gin.WrapH(fsHandler()))
 	router.GET("/", func(context *gin.Context) {

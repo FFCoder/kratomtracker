@@ -2,7 +2,6 @@ package doses
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"kratomTracker/notificationmanager"
 	"time"
@@ -142,16 +141,15 @@ func (repo *SqliteDoseRepository) GetNextDoseTime() (time.Time, error) {
 	var lastDoseTime time.Time
 	var lastDoseTimeStr string
 	queryStr := `
-		SELECT MAX(date_taken) AS most_recent_date
-		FROM doses
-		WHERE DATE(date_taken) = DATE('now', 'localtime')
-		ORDER BY date_taken DESC
-		LIMIT 1`
+SELECT COALESCE(
+    DATETIME(MAX(date_taken), '+2 hours'),
+    DATETIME('now', 'localtime')
+) AS result_time
+FROM doses
+WHERE DATE(date_taken) = DATE('now', 'localtime');
+`
 	err := repo.Db.QueryRow(queryStr).Scan(&lastDoseTimeStr)
 	// If there are no doses today, return the current time
-	if errors.Is(err, sql.ErrNoRows) || lastDoseTimeStr == "" {
-		return time.Now(), nil
-	}
 	if err != nil {
 		return time.Now(), err
 	}
@@ -159,5 +157,5 @@ func (repo *SqliteDoseRepository) GetNextDoseTime() (time.Time, error) {
 	if err != nil {
 		return time.Now(), err
 	}
-	return lastDoseTime.Add(2 * time.Hour), nil
+	return lastDoseTime, nil
 }
