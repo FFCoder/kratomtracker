@@ -5,7 +5,8 @@ name: Build Binaries
 
 on:
   push:
-    branches: [ "main" ]
+    branches-ignore:
+      - main
 
 jobs:
   docker:
