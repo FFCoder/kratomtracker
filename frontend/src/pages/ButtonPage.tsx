@@ -12,6 +12,12 @@ type ButtonPageProps = {
 const ButtonPage = ({isSuccessful, setIsSuccessful}: ButtonPageProps) => {
     const [message, setMessage] = useState<string>('');
     const [nextDoseTime, setNextDoseTime] = useState<Date | null>(null);
+    const formatNextDoseTime = (nextDoseTime: Date | null) => {
+        if (nextDoseTime) {
+            return nextDoseTime.toLocaleTimeString("en-US", { timeZone: "-00:00" });
+        }
+        return "Loading...";
+    }
     const getNextDoseTime = async () => {
         try {
             const response = await fetch(getAPIServerBaseURL() + "/doses/next")
@@ -44,7 +50,7 @@ const ButtonPage = ({isSuccessful, setIsSuccessful}: ButtonPageProps) => {
                 <Stack spacing={2}>
                     <LogDoseButton setIsSuccessful={setIsSuccessful} />
                     <span style={{}}>{message}</span>
-                    <Typography variant={"h6"}>Next Dose Time: {nextDoseTime?.toLocaleString().split(" ")[1].trim() ?? "Loading..."}</Typography>
+                    <Typography variant={"h6"}>Next Dose Time: {formatNextDoseTime(nextDoseTime)}</Typography>
                 </Stack>
             </Container>
         </>
